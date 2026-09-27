@@ -825,10 +825,15 @@ footer{
     font-weight:600;
 }
 
-/* ===== ASAP VIDEO (UNGU) ===== */
-/* hue-rotate(65deg) = biru -> UNGU
-   latar tetap transparan,
-   asap tetap tebal & pekat */
+/* ===== ASAP VIDEO - CHROMA KEY HITAM ===== */
+/* HEMAT: mix-blend GAK DIPAKAI (itu
+   penyebab asap hilang di web putih!)
+   GANTI: filter alpha-from-luminance
+   - hitam video -> transparan 100%
+   - asap biru -> SOLID Pekat
+   - 90% asap menonjol
+   - kecepatan NORMAL (1x)
+   - di atas semua pop-up */
 
 #smokeVideo{
     position:fixed;
@@ -838,8 +843,8 @@ footer{
     object-fit:cover;
     z-index:2000;
     pointer-events:none;
-    filter:url(#keyGreen) hue-rotate(65deg) saturate(3.5) brightness(1.3) contrast(1.05);
-    opacity:.7;
+    filter:url(#keyBlack) saturate(2.5) brightness(1.4) contrast(1.1);
+    opacity:.95;
 }
 
 #smokeVideo2{
@@ -850,8 +855,8 @@ footer{
     object-fit:cover;
     z-index:2001;
     pointer-events:none;
-    filter:url(#keyGreen) hue-rotate(65deg) saturate(3.5) brightness(1.25) contrast(1.05);
-    opacity:.4;
+    filter:url(#keyBlack) saturate(2.5) brightness(1.3) contrast(1.1);
+    opacity:.5;
     transform:scaleX(-1);
 }
 
@@ -863,12 +868,12 @@ footer{
     object-fit:cover;
     z-index:2002;
     pointer-events:none;
-    filter:url(#keyGreen) hue-rotate(65deg) saturate(3.5) brightness(1.2) contrast(1.05);
-    opacity:.3;
+    filter:url(#keyBlack) saturate(2.5) brightness(1.25) contrast(1.1);
+    opacity:.4;
     transform:scaleX(-1) rotate(180deg);
 }
 
-/* ===== FALLBACK ASAP UNGU ===== */
+/* ===== FALLBACK ASAP (kalau video gagal load) ===== */
 #smokeOverlay{
     position:fixed;
     inset:0;
@@ -893,10 +898,10 @@ footer{
         transform:translate(0,0) scale(.5) rotate(0deg);
     }
     12%{
-        opacity:.6;
+        opacity:.8;
     }
     65%{
-        opacity:.4;
+        opacity:.6;
     }
     100%{
         opacity:0;
@@ -908,20 +913,20 @@ footer{
 
 <body>
 
-<!-- FILTER CHROMA KEY:
-     HIJAU & HITAM -> TRANSPARAN 100%
-     ASAP -> TETAP SOLID -->
+<!-- FILTER CHROMA KEY UNTUK VIDEO LATAR HITAM:
+     hitam -> TRANSPARAN 100%
+     asap biru -> SOLID (alpha = 0.3R+0.3G+0.5B) -->
 <svg width="0" height="0" style="position:absolute">
-    <filter id="keyGreen" color-interpolation-filters="sRGB">
+    <filter id="keyBlack" color-interpolation-filters="sRGB">
         <feColorMatrix type="matrix" values="
-            1    0     0    0  0
-            0    1     0    0  0
-            0    0     1    0  0
-            0.2 -0.5   1.2  0  0"/>
+            1    0    0    0  0
+            0    1    0    0  0
+            0    0    1    0  0
+            0.3  0.3  0.5  0  0"/>
     </filter>
 </svg>
 
-<!-- VIDEO ASAP LAPIS 1 -->
+<!-- VIDEO ASAP LAPIS 1 (UTAMA) -->
 <video
 id="smokeVideo"
 class="smoke-video"
@@ -930,7 +935,7 @@ muted
 loop
 playsinline
 preload="auto">
-<source src="https://f.top4top.io/m_3922229es0.mp4" type="video/mp4">
+<source src="https://c.top4top.io/m_3922h5r041.mp4" type="video/mp4">
 </video>
 
 <!-- VIDEO ASAP LAPIS 2 (dicerminkan) -->
@@ -942,7 +947,7 @@ muted
 loop
 playsinline
 preload="auto">
-<source src="https://f.top4top.io/m_3922229es0.mp4" type="video/mp4">
+<source src="https://c.top4top.io/m_3922h5r041.mp4" type="video/mp4">
 </video>
 
 <!-- VIDEO ASAP LAPIS 3 (dicerminkan & diputar) -->
@@ -954,7 +959,7 @@ muted
 loop
 playsinline
 preload="auto">
-<source src="https://f.top4top.io/m_3922229es0.mp4" type="video/mp4">
+<source src="https://c.top4top.io/m_3922h5r041.mp4" type="video/mp4">
 </video>
 
 <div class="container" id="mainPage">
@@ -1379,11 +1384,12 @@ Belum ada transaksi.
 
 <script>
 /* =========================
-   ASAP VIDEO GREEN SCREEN
+   ASAP VIDEO - CHROMA KEY HITAM
+   - Asap SOLID & menonjol 90%
+   - Kecepatan NORMAL (1x)
    - Auto play saat buka web
-   - Loop diputar 2x lebih cepat
-   - Latar hijau/hitam transparan
-   - Warna asap: BIRU -> UNGU
+   - Loop berulang terus menerus
+   - Latar hitam transparan total
    - Asap tampil di atas semua pop-up
 ========================= */
 
@@ -1391,7 +1397,7 @@ Belum ada transaksi.
     const videos=
         document.querySelectorAll(".smoke-video");
 
-    const VIDEO_SPEED=2;
+    const VIDEO_SPEED=1;
 
     let fallbackStarted=false;
 
@@ -1407,10 +1413,10 @@ Belum ada transaksi.
         document.body.appendChild(overlay);
 
         const colors=[
-            "rgba(170,60,255,.45)",
-            "rgba(140,0,255,.40)",
-            "rgba(220,140,255,.38)",
-            "rgba(180,80,255,.40)"
+            "rgba(0,180,255,.7)",
+            "rgba(0,120,255,.65)",
+            "rgba(0,242,234,.6)",
+            "rgba(80,160,255,.65)"
         ];
 
         function spawnSmoke(){
@@ -1441,6 +1447,7 @@ Belum ada transaksi.
         }
     }
 
+    /* Kalau video gagal load → pakai asap CSS */
     videos.forEach(video=>{
         video.addEventListener(
             "error",startFallback,true
@@ -1454,7 +1461,7 @@ Belum ada transaksi.
             );
         });
 
-    /* Auto play semua video + PERCEPAT */
+    /* Auto play video saat buka web */
     videos.forEach(video=>{
 
         video.playbackRate=VIDEO_SPEED;
@@ -1477,6 +1484,7 @@ Belum ada transaksi.
         }
     });
 
+    /* Jaga kecepatan tetap normal tiap loop */
     videos.forEach(video=>{
         video.addEventListener(
             "loadeddata",
